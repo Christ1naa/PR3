@@ -69,11 +69,11 @@
             let Sh2 = Wsh2 * B;
             let profit2 = P2 - Sh2;
 
-            document.getElementById("profit").innerHTML = 
+            document.getElementById("profit").innerHTML = `
                 <strong>Прибуток до вдосконалення:</strong> ${profit1.toFixed(2)} тис. грн.<br>
                 <strong>Прибуток після вдосконалення:</strong> ${profit2.toFixed(2)} тис. грн.<br>
                 <strong>Додатковий прибуток:</strong> ${(profit2 - profit1).toFixed(2)} тис. грн.
-            ;
+            `;
         }
     </script>
 </body>
