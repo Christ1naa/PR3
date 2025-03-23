@@ -19,32 +19,50 @@
         <label>Тариф (грн/МВт·год):</label>
         <input type="number" id="tariff" placeholder="Введіть тариф">
         
-        <label>Частка енергії без небалансів (%):</label>
-        <input type="number" id="delta" placeholder="Введіть частку енергії">
+        <label>Середньоквадратичне відхилення до вдосконалення (σ₁, МВт):</label>
+        <input type="number" id="sigma1" placeholder="Введіть σ₁">
+        
+        <label>Середньоквадратичне відхилення після вдосконалення (σ₂, МВт):</label>
+        <input type="number" id="sigma2" placeholder="Введіть σ₂">
         
         <button onclick="calculateProfit()">Розрахувати прибуток</button>
         <h3>Чистий прибуток: <span id="profit">0</span> тис. грн</h3>
     </div>
 
     <script>
+        function normalCDF(x, mean, sigma) {
+            return (1 + Math.erf((x - mean) / (sigma * Math.sqrt(2)))) / 2;
+        }
+
         function calculateProfit() {
             let P_C = parseFloat(document.getElementById('power').value);
             let B = parseFloat(document.getElementById('tariff').value);
-            let delta = parseFloat(document.getElementById('delta').value) / 100;
+            let sigma1 = parseFloat(document.getElementById('sigma1').value);
+            let sigma2 = parseFloat(document.getElementById('sigma2').value);
             
-            if (isNaN(P_C) || isNaN(B) || isNaN(delta)) {
+            if (isNaN(P_C) || isNaN(B) || isNaN(sigma1) || isNaN(sigma2)) {
                 alert("Будь ласка, введіть коректні значення!");
                 return;
             }
             
-            let W_p = P_C * 24 * delta;
-            let P1 = W_p * B;
-            let W_s = P_C * 24 * (1 - delta);
-            let S1 = W_s * B;
-            let P_net = P1 - S1;
+            let delta_p1 = normalCDF(5.25, P_C, sigma1) - normalCDF(4.75, P_C, sigma1);
+            let delta_p2 = normalCDF(5.25, P_C, sigma2) - normalCDF(4.75, P_C, sigma2);
             
-            document.getElementById('profit').textContent = P_net.toFixed(2);
+            let W_p1 = P_C * 24 * delta_p1;
+            let P1 = W_p1 * B;
+            let W_s1 = P_C * 24 * (1 - delta_p1);
+            let S1 = W_s1 * B;
+            let profit1 = P1 - S1;
+            
+            let W_p2 = P_C * 24 * delta_p2;
+            let P2 = W_p2 * B;
+            let W_s2 = P_C * 24 * (1 - delta_p2);
+            let S2 = W_s2 * B;
+            let profit2 = P2 - S2;
+            
+            document.getElementById('profit').textContent = profit2.toFixed(2);
         }
     </script>
 </body>
 </html>
+
