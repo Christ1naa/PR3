@@ -40,8 +40,19 @@
     </div>
 
     <script>
+        function erf(x) {
+            let a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+            let a4 = -1.453152027, a5 = 1.061405429;
+            let p = 0.3275911;
+            let sign = (x < 0) ? -1 : 1;
+            x = Math.abs(x);
+            let t = 1 / (1 + p * x);
+            let y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return sign * y;
+        }
+
         function normalCDF(x, mean, stdDev) {
-            return (1 - Math.erf((mean - x) / (Math.sqrt(2) * stdDev))) / 2;
+            return (1 + erf((x - mean) / (Math.sqrt(2) * stdDev))) / 2;
         }
 
         function calculateProfit() {
@@ -49,6 +60,11 @@
             let sigma1 = parseFloat(document.getElementById("sigma1").value);
             let sigma2 = parseFloat(document.getElementById("sigma2").value);
             let B = parseFloat(document.getElementById("B").value);
+
+            if (isNaN(Pc) || isNaN(sigma1) || isNaN(sigma2) || isNaN(B)) {
+                document.getElementById("profit").innerHTML = "Будь ласка, введіть коректні значення.";
+                return;
+            }
 
             let P_low1 = Pc - sigma1;
             let P_high1 = Pc + sigma1;
