@@ -40,8 +40,8 @@
     </div>
 
     <script>
-        function normalDistribution(x, mean, stdDev) {
-            return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-((x - mean) ** 2) / (2 * stdDev ** 2));
+        function normalCDF(x, mean, stdDev) {
+            return (1 + Math.erf((x - mean) / (stdDev * Math.sqrt(2)))) / 2;
         }
 
         function calculateProfit() {
@@ -52,8 +52,11 @@
 
             let P_low1 = Pc - sigma1;
             let P_high1 = Pc + sigma1;
-            let delta_p1 = 0.2; // Приблизне значення
-            let delta_p2 = 0.68; // Приблизне значення
+            let P_low2 = Pc - sigma2;
+            let P_high2 = Pc + sigma2;
+
+            let delta_p1 = normalCDF(P_high1, Pc, sigma1) - normalCDF(P_low1, Pc, sigma1);
+            let delta_p2 = normalCDF(P_high2, Pc, sigma2) - normalCDF(P_low2, Pc, sigma2);
 
             let Wp1 = Pc * 24 * delta_p1;
             let P1 = Wp1 * B;
@@ -61,8 +64,6 @@
             let Sh1 = Wsh1 * B;
             let profit1 = P1 - Sh1;
 
-            let P_low2 = Pc - sigma2;
-            let P_high2 = Pc + sigma2;
             let Wp2 = Pc * 24 * delta_p2;
             let P2 = Wp2 * B;
             let Wsh2 = Pc * 24 * (1 - delta_p2);
@@ -78,3 +79,4 @@
     </script>
 </body>
 </html>
+
