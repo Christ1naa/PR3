@@ -40,19 +40,8 @@
     </div>
 
     <script>
-        function erf(x) {
-            let a1 =  0.254829592, a2 = -0.284496736;
-            let a3 =  1.421413741, a4 = -1.453152027;
-            let a5 =  1.061405429, p  =  0.3275911;
-            let sign = (x < 0) ? -1 : 1;
-            x = Math.abs(x);
-            let t = 1.0 / (1.0 + p * x);
-            let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-            return sign * y;
-        }
-
         function normalCDF(x, mean, stdDev) {
-            return (1 + erf((x - mean) / (stdDev * Math.sqrt(2)))) / 2;
+            return (1 - Math.erf((mean - x) / (Math.sqrt(2) * stdDev))) / 2;
         }
 
         function calculateProfit() {
@@ -61,17 +50,12 @@
             let sigma2 = parseFloat(document.getElementById("sigma2").value);
             let B = parseFloat(document.getElementById("B").value);
 
-            if (isNaN(Pc) || isNaN(sigma1) || isNaN(sigma2) || isNaN(B)) {
-                document.getElementById("profit").innerHTML = "Будь ласка, введіть коректні числові значення.";
-                return;
-            }
-
             let P_low1 = Pc - sigma1;
             let P_high1 = Pc + sigma1;
+            let delta_p1 = normalCDF(P_high1, Pc, sigma1) - normalCDF(P_low1, Pc, sigma1);
+
             let P_low2 = Pc - sigma2;
             let P_high2 = Pc + sigma2;
-
-            let delta_p1 = normalCDF(P_high1, Pc, sigma1) - normalCDF(P_low1, Pc, sigma1);
             let delta_p2 = normalCDF(P_high2, Pc, sigma2) - normalCDF(P_low2, Pc, sigma2);
 
             let Wp1 = Pc * 24 * delta_p1;
@@ -95,5 +79,3 @@
     </script>
 </body>
 </html>
-
-
