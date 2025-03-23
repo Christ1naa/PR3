@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор прибутку від СЕС</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        input, button { margin: 10px; padding: 10px; width: 90%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Калькулятор прибутку від сонячної електростанції</h2>
+        <label>Встановлена потужність (МВт):</label>
+        <input type="number" id="power" placeholder="Введіть потужність">
+        
+        <label>Тариф (грн/МВт·год):</label>
+        <input type="number" id="tariff" placeholder="Введіть тариф">
+        
+        <label>Частка енергії без небалансів (%):</label>
+        <input type="number" id="delta" placeholder="Введіть частку енергії">
+        
+        <button onclick="calculateProfit()">Розрахувати прибуток</button>
+        <h3>Чистий прибуток: <span id="profit">0</span> тис. грн</h3>
+    </div>
+
+    <script>
+        function calculateProfit() {
+            let P_C = parseFloat(document.getElementById('power').value);
+            let B = parseFloat(document.getElementById('tariff').value);
+            let delta = parseFloat(document.getElementById('delta').value) / 100;
+            
+            if (isNaN(P_C) || isNaN(B) || isNaN(delta)) {
+                alert("Будь ласка, введіть коректні значення!");
+                return;
+            }
+            
+            let W_p = P_C * 24 * delta;
+            let P1 = W_p * B;
+            let W_s = P_C * 24 * (1 - delta);
+            let S1 = W_s * B;
+            let P_net = P1 - S1;
+            
+            document.getElementById('profit').textContent = P_net.toFixed(2);
+        }
+    </script>
+</body>
+</html>
