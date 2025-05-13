@@ -1,80 +1,125 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор прибутку СЕС</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-        }
-        input, button {
-            margin: 10px;
-            padding: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Калькулятор прибутку СЕС</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input {
+      padding: 5px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 15px;
+      background: #fff;
+      border-left: 5px solid green;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Калькулятор прибутку від СЕС</h2>
-        <label>Середньодобова потужність (Pc, МВт):</label>
-        <input type="number" id="Pc" step="0.01" required><br>
-        <label>Середньоквадратичне відхилення 1 (σ1, МВт):</label>
-        <input type="number" id="sigma1" step="0.01" required><br>
-        <label>Середньоквадратичне відхилення 2 (σ2, МВт):</label>
-        <input type="number" id="sigma2" step="0.01" required><br>
-        <label>Вартість електроенергії (B, грн/кВт·год):</label>
-        <input type="number" id="B" step="0.01" required><br>
-        <button onclick="calculateProfit()">Розрахувати</button>
-        <h3>Результати:</h3>
-        <p id="profit"></p>
-    </div>
 
-    <script>
-        function normalDistribution(x, mean, stdDev) {
-            return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-((x - mean) ** 2) / (2 * stdDev ** 2));
-        }
+  <h1>Калькулятор прибутку сонячної електростанції</h1>
 
-        function calculateProfit() {
-            let Pc = parseFloat(document.getElementById("Pc").value);
-            let sigma1 = parseFloat(document.getElementById("sigma1").value);
-            let sigma2 = parseFloat(document.getElementById("sigma2").value);
-            let B = parseFloat(document.getElementById("B").value);
+  <label>Середньодобова потужність Pc (МВт):</label>
+  <input type="number" id="Pc" value="5" step="0.1">
 
-            let P_low1 = Pc - sigma1;
-            let P_high1 = Pc + sigma1;
-            let delta_p1 = 0.2; // Приблизне значення
-            let delta_p2 = 0.68; // Приблизне значення
+  <label>Старе стандартне відхилення σ₁ (МВт):</label>
+  <input type="number" id="sigma1" value="1" step="0.1">
 
-            let Wp1 = Pc * 24 * delta_p1;
-            let P1 = Wp1 * B;
-            let Wsh1 = Pc * 24 * (1 - delta_p1);
-            let Sh1 = Wsh1 * B;
-            let profit1 = P1 - Sh1;
+  <label>Нове стандартне відхилення σ₂ (МВт):</label>
+  <input type="number" id="sigma2" value="0.25" step="0.01">
 
-            let P_low2 = Pc - sigma2;
-            let P_high2 = Pc + sigma2;
-            let Wp2 = Pc * 24 * delta_p2;
-            let P2 = Wp2 * B;
-            let Wsh2 = Pc * 24 * (1 - delta_p2);
-            let Sh2 = Wsh2 * B;
-            let profit2 = P2 - Sh2;
+  <label>Вартість електроенергії B (грн/кВт·год):</label>
+  <input type="number" id="B" value="7" step="0.1">
 
-            document.getElementById("profit").innerHTML = `
-                <strong>Прибуток до вдосконалення:</strong> ${profit1.toFixed(2)} тис. грн.<br>
-                <strong>Прибуток після вдосконалення:</strong> ${profit2.toFixed(2)} тис. грн.<br>
-                <strong>Додатковий прибуток:</strong> ${(profit2 - profit1).toFixed(2)} тис. грн.
-            `;
-        }
-    </script>
+  <button onclick="calculate()">Розрахувати</button>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    function normalCDF(x, mean, std) {
+      return 0.5 * (1 + erf((x - mean) / (std * Math.sqrt(2))));
+    }
+
+    function erf(x) {
+      // Approximation of the error function
+      let sign = x >= 0 ? 1 : -1;
+      x = Math.abs(x);
+      const a1 =  0.254829592;
+      const a2 = -0.284496736;
+      const a3 =  1.421413741;
+      const a4 = -1.453152027;
+      const a5 =  1.061405429;
+      const p  =  0.3275911;
+
+      let t = 1.0 / (1.0 + p * x);
+      let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+
+    function calculateProfit(Pc, sigma, B) {
+      const delta = 0.05;
+      const hours = 24;
+      const low = Pc * (1 - delta);
+      const high = Pc * (1 + delta);
+
+      const delta_p = normalCDF(high, Pc, sigma) - normalCDF(low, Pc, sigma);
+      const W_gen = Pc * hours;
+      const W1 = W_gen * delta_p;
+      const W2 = W_gen * (1 - delta_p);
+
+      const profit = (W1 - W2) * B * 1000;
+      return {
+        delta_p: delta_p,
+        W1: W1,
+        W2: W2,
+        profit: profit
+      };
+    }
+
+    function calculate() {
+      const Pc = parseFloat(document.getElementById("Pc").value);
+      const sigma1 = parseFloat(document.getElementById("sigma1").value);
+      const sigma2 = parseFloat(document.getElementById("sigma2").value);
+      const B = parseFloat(document.getElementById("B").value);
+
+      const res1 = calculateProfit(Pc, sigma1, B);
+      const res2 = calculateProfit(Pc, sigma2, B);
+      const profit_gain = res2.profit - res1.profit;
+
+      document.getElementById("output").innerHTML = `
+        <strong>Стара система (σ = ${sigma1} МВт):</strong><br>
+        Частка без штрафу: ${(res1.delta_p * 100).toFixed(2)}%<br>
+        Прибуток: ${(res1.profit / 1000).toFixed(2)} тис. грн<br><br>
+
+        <strong>Нова система (σ = ${sigma2} МВт):</strong><br>
+        Частка без штрафу: ${(res2.delta_p * 100).toFixed(2)}%<br>
+        Прибуток: ${(res2.profit / 1000).toFixed(2)} тис. грн<br><br>
+
+        <strong>Приріст прибутку: ${(profit_gain / 1000).toFixed(2)} тис. грн</strong>
+      `;
+    }
+  </script>
+
 </body>
 </html>
