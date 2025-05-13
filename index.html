@@ -77,25 +77,30 @@
       return sign * y;
     }
 
-    function calculateProfit(Pc, sigma, B) {
-      const delta = 0.05;
-      const hours = 24;
-      const low = Pc * (1 - delta);
-      const high = Pc * (1 + delta);
+function calculateProfit(Pc, sigma, B) {
+  const range = 0.25; // фіксоване відхилення ±0.25 МВт
+  const hours = 24;
 
-      const delta_p = normalCDF(high, Pc, sigma) - normalCDF(low, Pc, sigma);
-      const W_gen = Pc * hours;
-      const W1 = W_gen * delta_p;
-      const W2 = W_gen * (1 - delta_p);
+  const low = Pc - range;
+  const high = Pc + range;
 
-      const profit = (W1 - W2) * B * 1000;
-      return {
-        delta_p: delta_p,
-        W1: W1,
-        W2: W2,
-        profit: profit
-      };
-    }
+  // Частка енергії без штрафу: інтеграл через нормальний CDF
+  const delta_p = normalCDF(high, Pc, sigma) - normalCDF(low, Pc, sigma);
+
+  const W_gen = Pc * hours;     // Загальна генерація (МВт·год)
+  const W1 = W_gen * delta_p;   // Енергія без штрафу
+  const W2 = W_gen * (1 - delta_p); // Енергія зі штрафом
+
+  const profit = (W1 - W2) * B * 1000; // Прибуток у гривнях
+
+  return {
+    delta_p: delta_p,
+    W1: W1,
+    W2: W2,
+    profit: profit
+  };
+}
+
 
     function calculate() {
       const Pc = parseFloat(document.getElementById("Pc").value);
